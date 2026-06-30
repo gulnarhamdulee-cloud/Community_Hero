@@ -1,0 +1,102 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net: Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128;
+    }
+
+    // --- USERS COLLECTION ---
+    // Public profile access is allowed to render public municipal leaderboards and report author profiles.
+    // Writes are strictly guarded to the owner.
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // --- OFFICERS COLLECTION ---
+    // Municipal Officer profiles are readable by anyone to verify assignments,
+    // but creation and updates are restricted to the officer themselves.
+    match /officers/{officerId} {
+      allow read: if true;
+      allow create, update: if isOwner(officerId);
+      allow delete: if false;
+    }
+
+    // --- REPORTS COLLECTION ---
+    // Grievances are public to facilitate community visibility and upvotes.
+    // Signed-in users can create and update (upvote, status update, resolve).
+    match /reports/{reportId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // --- STATUS HISTORY COLLECTION ---
+    // Status transition history is readable by anyone and writable by signed-in users.
+    match /statusHistory/{historyId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // --- NOTIFICATIONS COLLECTION ---
+    // Notifications require authentication for privacy.
+    match /notifications/{notificationId} {
+      allow read, write: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // --- ANALYTICS COLLECTION ---
+    match /analytics/{analyticsId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // --- AGENT EXECUTIONS COLLECTION ---
+    match /agentExecutions/{executionId} {
+      allow read: if true;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // --- AGENT WORKFLOWS COLLECTION ---
+    match /agentWorkflows/{workflowId} {
+      allow read, write: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // --- CHAT SESSIONS COLLECTION ---
+    match /chatSessions/{sessionId} {
+      allow read, write: if isSignedIn();
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+  }
+}

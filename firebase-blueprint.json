@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Citizen profile containing gamified scores and municipality preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "integer", "enum": [0, 1] },
+        "city": { "type": "string" },
+        "ward": { "type": "string" },
+        "points": { "type": "integer" },
+        "badges": { "type": "array" },
+        "reportsSubmitted": { "type": "integer" },
+        "reportsVerified": { "type": "integer" },
+        "createdAt": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role", "city"]
+    },
+    "OfficerProfile": {
+      "title": "OfficerProfile",
+      "description": "Municipal Officer profile detailing their department, ward, and designation.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "integer", "enum": [0, 1] },
+        "department": { "type": "string" },
+        "city": { "type": "string" },
+        "ward": { "type": "string" },
+        "designation": { "type": "string" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role", "department", "city", "ward", "designation", "active"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores details of the registered citizen heroes."
+    },
+    "/officers/{officerId}": {
+      "schema": "OfficerProfile",
+      "description": "Stores details of the authorized municipal officers."
+    }
+  }
+}
